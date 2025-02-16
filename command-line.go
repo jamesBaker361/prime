@@ -95,7 +95,7 @@ func process_job(next_job JobStruct, C int, sectionReader io.SectionReader, resu
 			n_bytes = end - begin
 			buf = make([]byte, n_bytes)
 		}
-		_, err := sectionReader.ReadAt(buf, int64(begin))
+		_, err := sectionReader.Read(buf)
 		if err != nil {
 			slog.Error("section reader error", nil)
 		}
