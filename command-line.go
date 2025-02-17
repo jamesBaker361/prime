@@ -8,6 +8,7 @@ import (
 	"log"
 	"log/slog"
 	"math"
+	"math/rand"
 	"os"
 	"strconv"
 	"sync"
@@ -101,7 +102,6 @@ func process_job(next_job JobStruct, C int, sectionReader io.SectionReader, resu
 		}
 		numbers, _ := readAllUvarints(buf)
 		primes := getPrimes(numbers)
-		slog.Info("\tprimes", "n_primes", primes, "begin", int64(begin), "end", end, "len", len(numbers))
 		result += primes
 	}
 	results <- ResultDescriptor{job: next_job, n_primes: result}
@@ -109,6 +109,8 @@ func process_job(next_job JobStruct, C int, sectionReader io.SectionReader, resu
 
 func Worker(results chan ResultDescriptor, jobs chan JobStruct, C int) {
 	defer wg.Done()
+	sleepTime := time.Duration(400+rand.Intn(201)) * time.Millisecond
+	time.Sleep(sleepTime)
 	for {
 		next_job, ok := <-jobs
 		if !ok {
@@ -121,7 +123,6 @@ func Worker(results chan ResultDescriptor, jobs chan JobStruct, C int) {
 			}
 			reader_start := int64(next_job.startByte)
 			reader_end := int64(next_job.endByte)
-			slog.Info("the girl reader this", "start", reader_start, "end", reader_end)
 			sectionReader := io.NewSectionReader(file, reader_start, reader_end)
 			process_job(next_job, C, *sectionReader, results)
 			file.Close()
@@ -207,7 +208,6 @@ func main() {
 	if !existsC {
 		C = 1024
 	}
-	fmt.Println(N, C)
 
 	fileInfo, err := os.Stat(pathName)
 	if err != nil {
@@ -216,7 +216,6 @@ func main() {
 	}
 
 	fileSize := int(fileInfo.Size())
-	fmt.Println("File size in bytes:", fileSize)
 
 	results := make(chan ResultDescriptor, 1000)
 	jobs := make(chan JobStruct, 1000)
